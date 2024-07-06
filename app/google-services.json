@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "388977799331",
+    "project_id": "propertyapp-1c8fa",
+    "storage_bucket": "propertyapp-1c8fa.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388977799331:android:ba4ca42a788c832e4ccf16",
+        "android_client_info": {
+          "package_name": "eu.tutorials.propertyapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmDaLITZi7MpfZ7mEO3T2tVAro80PfdH4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
