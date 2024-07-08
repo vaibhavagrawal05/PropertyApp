@@ -85,4 +85,3 @@ fun openGeneratedPdf(context: Context, pdfPath: String) {
         // Show an error message or toast
     }
 }
-

@@ -47,46 +47,42 @@ fun PropertyDetailsScreen(navController: NavController, property: Property) {
 //        }
 //    )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Name: ${property.name}", style = MaterialTheme.typography.bodyLarge)
-        Text("Address: ${property.address}", style = MaterialTheme.typography.bodyLarge)
-        Text("Floor: ${property.floor}", style = MaterialTheme.typography.bodyLarge)
-        Text("Area: ${property.area}", style = MaterialTheme.typography.bodyLarge)
-        Text("Market Value: ${property.marketValue}", style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("addRoomScreen/${property.id}") }) {
-            Text("List of Inspections")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.popBackStack() }) {
-            Text("Back")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn {
-            items(property.rooms) { room ->
-                RoomItem(room)
+    property?.let {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Name: ${property.name}", style = MaterialTheme.typography.bodyLarge)
+            Text("Address: ${property.address}", style = MaterialTheme.typography.bodyLarge)
+            Text("Floor: ${property.floor}", style = MaterialTheme.typography.bodyLarge)
+            Text("Area: ${property.area}", style = MaterialTheme.typography.bodyLarge)
+            Text("Market Value: ${property.marketValue}", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { navController.navigate("addRoomScreen/${property.id}") }) {
+                Text("List of Inspections")
             }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { navController.popBackStack() }) {
+                Text("Back")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn {
+                items(property.rooms) { room ->
+                    RoomItem(room)
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
             coroutineScope.launch {
                 generatePdf(context, property)
-            }
-        }) {
+                }
+            }) {
             Text("Generate PDF")
+            }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-//        Button(onClick = {
-//            galleryLauncher.launch("image/*")
-//        }) {
-//            Text("Choose from Gallery")
-//        }
     }
 }
 
@@ -121,4 +117,3 @@ fun RoomItem(room: Room) {
 //    // Do something with the selected image URI
 //    Log.d("PropertyDetailsScreen", "Selected image URI: $uri")
 //}
-

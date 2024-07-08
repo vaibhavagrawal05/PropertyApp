@@ -58,7 +58,7 @@ fun AddPropertyScreen(navController: NavController, viewModel: PropertyViewModel
             Button(onClick = {
                 if (name.isNotEmpty() && address.isNotEmpty() && floor.isNotEmpty() && area.isNotEmpty() && marketValue.isNotEmpty()) {
                     val newProperty = Property(
-                        id = viewModel.properties.size.toString(),
+                        id = System.currentTimeMillis().toString(), // Generate proper id
                         name = name,
                         address = address,
                         floor = floor,

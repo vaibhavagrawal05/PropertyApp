@@ -60,7 +60,7 @@ fun EditPropertyScreen(navController: NavController, viewModel: PropertyViewMode
         Row {
             Button(onClick = {
                 if (name.isNotEmpty() && address.isNotEmpty() && floor.isNotEmpty() && area.isNotEmpty() && marketValue.isNotEmpty()) {
-                    val newProperty = property.copy(
+                    val updatedProperty = property.copy(
                         name = name,
                         address = address,
                         floor = floor,
@@ -68,7 +68,7 @@ fun EditPropertyScreen(navController: NavController, viewModel: PropertyViewMode
                         marketValue = marketValue,
                         isEditing = false
                     )
-                    viewModel.editProperty(property, newProperty)
+                    viewModel.editProperty(property, updatedProperty)
                     navController.navigate("firstScreen") {
                         popUpTo("firstScreen") { inclusive = true }
                     }
@@ -83,4 +83,3 @@ fun EditPropertyScreen(navController: NavController, viewModel: PropertyViewMode
         }
     }
 }
-

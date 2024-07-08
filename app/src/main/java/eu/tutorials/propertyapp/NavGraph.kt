@@ -1,7 +1,10 @@
 package eu.tutorials.propertyapp
 
+import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,7 +18,8 @@ import eu.tutorials.propertyapp.viewmodel.AuthViewModel
 @Composable
 fun MyApp(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
-    val viewModel = remember { PropertyViewModel() }
+    val context = LocalContext.current.applicationContext as Application
+    val viewModel: PropertyViewModel = viewModel(factory = PropertyViewModelFactory(context))
 
     NavHost(navController = navController, startDestination = "firstPage") {
         composable("firstPage") {
