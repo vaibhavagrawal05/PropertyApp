@@ -1,4 +1,4 @@
-package eu.tutorials.propertyapp
+package eu.tutorials.propertyapp.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

@@ -4,8 +4,12 @@ import android.app.Application
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import eu.tutorials.propertyapp.database.AppDatabase
+import eu.tutorials.propertyapp.database.PropertyDao
+import eu.tutorials.propertyapp.database.PropertyEntity
+import eu.tutorials.propertyapp.database.RoomDao
+import eu.tutorials.propertyapp.database.RoomEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -84,26 +88,30 @@ class PropertyViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun editProperty(oldProperty: Property, newProperty: Property) {
-        val index = properties.indexOf(oldProperty)
-        if (index != -1) {
-            properties[index] = newProperty
+        viewModelScope.launch(Dispatchers.IO) {
             val propertyEntity = newProperty.toPropertyEntity()
-            viewModelScope.launch(Dispatchers.IO) {
-                withContext(Dispatchers.Main) {
-                    propertyDao.insertProperty(propertyEntity)
+            propertyDao.insertProperty(propertyEntity)
+            withContext(Dispatchers.Main) {
+                val index = properties.indexOf(oldProperty)
+                if (index != -1) {
+                    properties[index] = newProperty
                 }
             }
         }
     }
 
     fun addRoomToProperty(propertyId: String, room: Room) {
-        val property = properties.find { it.id == propertyId }
-        property?.let {
-            it.rooms += room
-            val roomEntity = room.toRoomEntity(propertyId)
-            viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val property = properties.find { it.id == propertyId }
+            property?.let {
+                it.rooms = it.rooms + room
+                val roomEntity = room.toRoomEntity(propertyId)
+                roomDao.insertRoom(roomEntity)
                 withContext(Dispatchers.Main) {
-                    roomDao.insertRoom(roomEntity)
+                    val propertyIndex = properties.indexOf(property)
+                    if (propertyIndex != -1) {
+                        properties[propertyIndex] = it.copy(rooms = it.rooms)
+                    }
                 }
             }
         }
