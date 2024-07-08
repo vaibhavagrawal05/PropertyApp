@@ -1,4 +1,4 @@
-package eu.tutorials.propertyapp
+package eu.tutorials.propertyapp.database
 
 import androidx.room.*
 import android.net.Uri
