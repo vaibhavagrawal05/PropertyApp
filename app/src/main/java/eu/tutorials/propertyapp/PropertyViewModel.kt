@@ -55,13 +55,18 @@ class PropertyViewModel(application: Application) : AndroidViewModel(application
 //    }
 
         fun loadProperties() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val propertyList = propertyDao.getAllProperties()
-            withContext(Dispatchers.Main) {
-                properties.clear()
-                properties.addAll(propertyList.map { it.toProperty() })
+            viewModelScope.launch(Dispatchers.IO) {
+                val propertyEntities = propertyDao.getAllProperties()
+                val propertyList = propertyEntities.map { propertyEntity ->
+                    val roomEntities = roomDao.getRoomsForProperty(propertyEntity.id)
+                    val rooms = roomEntities.map { it.toRoom() }
+                    propertyEntity.toProperty().copy(rooms = rooms)
+                }
+                withContext(Dispatchers.Main) {
+                    properties.clear()
+                    properties.addAll(propertyList)
+                }
             }
-        }
     }
     fun addProperty(property: Property) {
         val propertyEntity = property.toPropertyEntity()
@@ -102,16 +107,14 @@ class PropertyViewModel(application: Application) : AndroidViewModel(application
 
     fun addRoomToProperty(propertyId: String, room: Room) {
         viewModelScope.launch(Dispatchers.IO) {
-            val property = properties.find { it.id == propertyId }
-            property?.let {
-                it.rooms = it.rooms + room
-                val roomEntity = room.toRoomEntity(propertyId)
-                roomDao.insertRoom(roomEntity)
-                withContext(Dispatchers.Main) {
-                    val propertyIndex = properties.indexOf(property)
-                    if (propertyIndex != -1) {
-                        properties[propertyIndex] = it.copy(rooms = it.rooms)
-                    }
+            val roomEntity = room.toRoomEntity(propertyId)
+            roomDao.insertRoom(roomEntity)
+
+            val updatedRooms = roomDao.getRoomsForProperty(propertyId).map { it.toRoom() }
+            withContext(Dispatchers.Main) {
+                val propertyIndex = properties.indexOfFirst { it.id == propertyId }
+                if (propertyIndex != -1) {
+                    properties[propertyIndex] = properties[propertyIndex].copy(rooms = updatedRooms)
                 }
             }
         }
