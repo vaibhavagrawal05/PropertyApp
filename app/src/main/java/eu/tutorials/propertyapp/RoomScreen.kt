@@ -1,8 +1,10 @@
 package eu.tutorials.propertyapp
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
@@ -10,19 +12,25 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import kotlinx.coroutines.launch
 import java.io.File
 
 private const val TAG = "AddRoomScreen"
@@ -54,7 +62,7 @@ fun AddRoomScreen(navController: NavController, viewModel: PropertyViewModel, pr
         contract = ActivityResultContracts.GetMultipleContents(),
         onResult = { uris ->
             if (uris.isNotEmpty()) {
-                images = uris
+                images = images + uris
                 Log.d(TAG, "Images selected: $uris")
                 Toast.makeText(context, "Images selected: $uris", Toast.LENGTH_SHORT).show()
             } else {
@@ -85,9 +93,10 @@ fun AddRoomScreen(navController: NavController, viewModel: PropertyViewModel, pr
         } else {
             Log.d(TAG, "Gallery permission denied")
             Toast.makeText(context, "Gallery permission denied", Toast.LENGTH_SHORT).show()
-            // You can add logic to show an explanation to the user here
         }
     }
+
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -148,29 +157,62 @@ fun AddRoomScreen(navController: NavController, viewModel: PropertyViewModel, pr
             }
             Spacer(modifier = Modifier.width(16.dp))
             Button(onClick = {
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "Gallery permission already granted")
-                    Toast.makeText(context, "Gallery permission already granted", Toast.LENGTH_SHORT).show()
-                    galleryLauncher.launch("image/*")
+                val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Manifest.permission.READ_MEDIA_IMAGES
                 } else {
-                    Log.d(TAG, "Requesting gallery permission")
-                    Toast.makeText(context, "Requesting gallery permission", Toast.LENGTH_SHORT).show()
-                    requestGalleryPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                }
+
+                when {
+                    ContextCompat.checkSelfPermission(context, galleryPermission) == PackageManager.PERMISSION_GRANTED -> {
+                        Log.d(TAG, "Gallery permission already granted")
+                        Toast.makeText(context, "Gallery permission already granted", Toast.LENGTH_SHORT).show()
+                        galleryLauncher.launch("image/*")
+                    }
+                    ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, galleryPermission) -> {
+                        Log.d(TAG, "Showing permission rationale")
+                        Toast.makeText(context, "Please grant gallery permission to select images", Toast.LENGTH_SHORT).show()
+                        requestGalleryPermissionLauncher.launch(galleryPermission)
+                    }
+                    else -> {
+                        Log.d(TAG, "Requesting gallery permission")
+                        Toast.makeText(context, "Requesting gallery permission", Toast.LENGTH_SHORT).show()
+                        requestGalleryPermissionLauncher.launch(galleryPermission)
+                    }
                 }
             }) {
                 Text("Pick Images from Gallery")
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        images.forEach { uri ->
-            Image(
-                painter = rememberAsyncImagePainter(uri),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(100.dp)
+
+        LazyColumn {
+            items(images) { uri ->
+                Box(modifier = Modifier
+                    .fillMaxWidth()
                     .padding(8.dp)
-            )
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onLongPress = {
+                                coroutineScope.launch {
+                                    images = images.toMutableList().apply { remove(uri) }
+                                }
+                                Toast.makeText(context, "Image deleted: $uri", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .padding(8.dp)
+                    )
+                }
+            }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
             val room = Room(description.text, images, inspectionDate.text) // Include inspection date
