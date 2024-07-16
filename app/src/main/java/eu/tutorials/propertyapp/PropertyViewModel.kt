@@ -119,6 +119,25 @@ class PropertyViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
+
+    fun fetchAndStoreProperties(apiKey: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val apiResponse = RetrofitInstance.api.getProperties(apiKey)
+                val propertyEntities = apiResponse.map { it.toPropertyEntity() }
+                val roomEntities = apiResponse.flatMap { propertyResponse ->
+                    propertyResponse.rooms.map { it.toRoomEntity(propertyResponse.id) }
+                }
+
+                propertyDao.insertAllProperties(propertyEntities)
+                roomDao.insertAllRooms(roomEntities)
+
+                loadProperties() // Refresh properties after insertion
+            } catch (e: Exception) {
+                // Handle exceptions, such as network errors
+            }
+        }
+    }
 }
 
 fun Property.toPropertyEntity() = PropertyEntity(id, name, address, floor, area, marketValue)

@@ -11,6 +11,11 @@ interface PropertyDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertProperty(property: PropertyEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllProperties(properties: List<PropertyEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllRooms(rooms: List<RoomEntity>)
     @Delete
     fun deleteProperty(property: PropertyEntity)
 }
@@ -22,6 +27,9 @@ interface RoomDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertRoom(room: RoomEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllRooms(rooms: List<RoomEntity>)
 
     @Delete
     fun deleteRoom(room: RoomEntity)
